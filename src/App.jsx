@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import RecipeForm from './components/RecipeForm';
 import RecipeCard from './components/RecipeCard';
 import RecipeView from './components/RecipeView';
-import { supabase } from './supabaseClient';
+
+const API_URL = 'http://localhost:3001/api';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
@@ -11,22 +12,15 @@ function App() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Загрузка рецептов из Supabase
   useEffect(() => {
     fetchRecipes();
   }, []);
 
   const fetchRecipes = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('recipes')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Ошибка загрузки:', error);
-    } else {
-      // Преобразуем данные из БД в наш формат
+    try {
+      const res = await fetch(`${API_URL}/recipes`);
+      const data = await res.json();
       const formatted = data.map(r => ({
         id: r.id,
         title: r.title,
@@ -37,39 +31,45 @@ function App() {
         steps: r.steps || [],
       }));
       setRecipes(formatted);
+    } catch (err) {
+      console.error('Ошибка загрузки:', err);
     }
     setLoading(false);
   };
 
   const handleSave = async (recipe) => {
-    // Отправляем в Supabase
-    const { error } = await supabase.from('recipes').insert({
-      title: recipe.title,
-      time: recipe.time,
-      servings: recipe.servings,
-      image: recipe.image,
-      ingredients: recipe.ingredients,
-      steps: recipe.steps,
-    });
-
-    if (error) {
-      console.error('Ошибка сохранения:', error);
-      alert('Ошибка сохранения. Попробуй ещё раз.');
-    } else {
-      await fetchRecipes(); // Обновляем список
-      setView('list');
+    try {
+      const res = await fetch(`${API_URL}/recipes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: recipe.title,
+          time: recipe.time,
+          servings: recipe.servings,
+          image: recipe.image,
+          ingredients: recipe.ingredients,
+          steps: recipe.steps,
+        }),
+      });
+      if (res.ok) {
+        await fetchRecipes();
+        setView('list');
+      } else {
+        alert('Ошибка сохранения');
+      }
+    } catch (err) {
+      console.error('Ошибка:', err);
+      alert('Ошибка сохранения');
     }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Удалить рецепт?')) return;
-
-    const { error } = await supabase.from('recipes').delete().eq('id', id);
-
-    if (error) {
-      console.error('Ошибка удаления:', error);
-    } else {
+    try {
+      await fetch(`${API_URL}/recipes/${id}`, { method: 'DELETE' });
       setRecipes(recipes.filter(r => r.id !== id));
+    } catch (err) {
+      console.error('Ошибка удаления:', err);
     }
   };
 
@@ -78,7 +78,6 @@ function App() {
     setView('recipe');
   };
 
-  // Фильтр по названию и ингредиентам
   const filtered = recipes.filter(r => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -88,7 +87,6 @@ function App() {
     );
   });
 
-  // ===== Рендер =====
   if (view === 'form') {
     return <RecipeForm onSave={handleSave} onCancel={() => setView('list')} />;
   }

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "layers": [
+    {
+      "name": "api",
+      "target": "COMPUTE",
+      "directory": ".",
+      "entry": "server.cjs"
+    }
+  ],
+  "routes": [
+    { "pattern": "^/api/.*$", "layer": "api", "priority": 20 },
+    { "pattern": "^/.*$", "layer": "api", "priority": 0 }
+  ]
+}
