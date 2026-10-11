@@ -5,7 +5,7 @@
   "type": "module",
  "scripts": {
   "dev": "vite",
-  "build": "echo \"Backend only, no build needed\"",
+  "build": "vite build",
   "lint": "oxlint",
   "preview": "vite preview",
   "server": "node server.cjs"
