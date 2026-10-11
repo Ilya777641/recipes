@@ -4,15 +4,10 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // увеличили лимит для скриншотов
+app.use(express.json({ limit: '10mb' }));
 
-// Подключение к базе ONREZA
 const pool = new Pool({
-  host: 'ep-95b37e7a4d60.kaiki.ru',
-  port: 5432,
-  database: 'recipes',
-  user: 'kaiki_c_b8c01ecf7aecffd8321f2cff', // вставь полное имя пользователя
-  password: 'Kk1!VEKB7L9Z-x3b94pXHZySfdlD_H70', // вставь свой пароль
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
@@ -30,10 +25,10 @@ app.get('/api/recipes', async (req, res) => {
 // Добавить рецепт
 app.post('/api/recipes', async (req, res) => {
   try {
-    const { title, time, servings, image, ingredients, steps } = req.body;
+    const { title, time, servings, image, ingredients, steps, tags } = req.body;
     const result = await pool.query(
-      'INSERT INTO recipes (title, time, servings, image, ingredients, steps) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [title, time, servings, image, JSON.stringify(ingredients), JSON.stringify(steps)]
+      'INSERT INTO recipes (title, time, servings, image, ingredients, steps, tags) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [title, time, servings, image, JSON.stringify(ingredients), JSON.stringify(steps), JSON.stringify(tags || [])]
     );
     res.json(result.rows[0]);
   } catch (err) {

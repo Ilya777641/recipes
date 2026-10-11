@@ -624,4 +624,81 @@ body {
   .recipe-view {
     padding: 24px;
   }
+  /* ===== ТЕГИ ===== */
+.tags-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-btn {
+  padding: 8px 18px;
+  border: 2px solid #c8e6c9;
+  border-radius: 24px;
+  background: white;
+  color: #2e7d32;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag-btn:hover {
+  border-color: #4caf50;
+  background: #f1f8f4;
+}
+
+.tag-btn.active {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+  border-color: #388e3c;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.tags-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.tag-filter-btn {
+  padding: 8px 20px;
+  border: 2px solid #c8e6c9;
+  border-radius: 24px;
+  background: white;
+  color: #2e7d32;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag-filter-btn:hover {
+  border-color: #4caf50;
+  background: #f1f8f4;
+}
+
+.tag-filter-btn.active {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+  border-color: #388e3c;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.recipe-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.recipe-card-tag {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
 }

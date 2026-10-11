@@ -4,13 +4,13 @@ function RecipeForm({ onSave, onCancel }) {
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('');
   const [servings, setServings] = useState('');
-  const [image, setImage] = useState(null); // base64 скриншота
+  const [image, setImage] = useState(null);
+  const [tags, setTags] = useState([]);
   const [ingredients, setIngredients] = useState([
     { name: '', amount: '', unit: 'г' }
   ]);
   const [steps, setSteps] = useState(['']);
 
-  // Загрузка картинки
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -19,7 +19,14 @@ function RecipeForm({ onSave, onCancel }) {
     reader.readAsDataURL(file);
   };
 
-  // Ингредиенты
+  const toggleTag = (tag) => {
+    setTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
   const addIngredient = () => {
     setIngredients([...ingredients, { name: '', amount: '', unit: 'г' }]);
   };
@@ -32,7 +39,6 @@ function RecipeForm({ onSave, onCancel }) {
     setIngredients(ingredients.filter((_, i) => i !== index));
   };
 
-  // Шаги
   const addStep = () => setSteps([...steps, '']);
   const updateStep = (index, value) => {
     const updated = [...steps];
@@ -43,7 +49,6 @@ function RecipeForm({ onSave, onCancel }) {
     setSteps(steps.filter((_, i) => i !== index));
   };
 
-  // Сохранение
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return alert('Введите название рецепта');
@@ -56,6 +61,7 @@ function RecipeForm({ onSave, onCancel }) {
       image,
       ingredients: ingredients.filter(i => i.name.trim()),
       steps: steps.filter(s => s.trim()),
+      tags,
       createdAt: new Date().toISOString()
     };
 
@@ -67,7 +73,6 @@ function RecipeForm({ onSave, onCancel }) {
       <form className="recipe-form" onSubmit={handleSubmit}>
         <h2>Новый рецепт</h2>
 
-        {/* Загрузка скриншота */}
         <div className="form-row">
           <label>Скриншот рецепта</label>
           <input type="file" accept="image/*" onChange={handleImageUpload} />
@@ -78,7 +83,6 @@ function RecipeForm({ onSave, onCancel }) {
           )}
         </div>
 
-        {/* Название */}
         <div className="form-row">
           <label>Название *</label>
           <input
@@ -89,7 +93,6 @@ function RecipeForm({ onSave, onCancel }) {
           />
         </div>
 
-        {/* Время и порции */}
         <div className="form-row-2">
           <div>
             <label>Время (мин)</label>
@@ -111,7 +114,22 @@ function RecipeForm({ onSave, onCancel }) {
           </div>
         </div>
 
-        {/* Ингредиенты */}
+        <div className="form-section">
+          <label>Категории</label>
+          <div className="tags-selector">
+            {['завтрак', 'обед', 'ужин', 'десерт', 'напиток'].map(tag => (
+              <button
+                key={tag}
+                type="button"
+                className={`tag-btn ${tags.includes(tag) ? 'active' : ''}`}
+                onClick={() => toggleTag(tag)}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="form-section">
           <div className="section-header">
             <label>Ингредиенты</label>
@@ -147,7 +165,6 @@ function RecipeForm({ onSave, onCancel }) {
           ))}
         </div>
 
-        {/* Шаги */}
         <div className="form-section">
           <div className="section-header">
             <label>Шаги приготовления</label>
@@ -167,7 +184,6 @@ function RecipeForm({ onSave, onCancel }) {
           ))}
         </div>
 
-        {/* Кнопки */}
         <div className="form-actions">
           <button type="button" className="btn-cancel" onClick={onCancel}>
             Отмена
