@@ -14,7 +14,7 @@ const pool = new Pool({
 // Получить все рецепты
 app.get('/api/recipes', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM recipes ORDER BY created_at DESC');
+    const result = await pool.query('SELECT id, title, time, servings, image, ingredients, steps, created_at FROM recipes ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -25,10 +25,10 @@ app.get('/api/recipes', async (req, res) => {
 // Добавить рецепт
 app.post('/api/recipes', async (req, res) => {
   try {
-    const { title, time, servings, image, ingredients, steps, tags } = req.body;
+    const { title, time, servings, image, ingredients, steps } = req.body;
     const result = await pool.query(
-      'INSERT INTO recipes (title, time, servings, image, ingredients, steps, tags) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [title, time, servings, image, JSON.stringify(ingredients), JSON.stringify(steps), JSON.stringify(tags || [])]
+      'INSERT INTO recipes (title, time, servings, image, ingredients, steps) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, title, time, servings, image, ingredients, steps, created_at',
+      [title, time, servings, image, JSON.stringify(ingredients), JSON.stringify(steps)]
     );
     res.json(result.rows[0]);
   } catch (err) {

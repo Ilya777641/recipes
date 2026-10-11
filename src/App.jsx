@@ -10,7 +10,6 @@ function App() {
   const [view, setView] = useState('list');
   const [currentRecipe, setCurrentRecipe] = useState(null);
   const [search, setSearch] = useState('');
-  const [activeTag, setActiveTag] = useState('все');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +27,15 @@ function App() {
     try {
       const res = await fetch(`${API_URL}/recipes`);
       const data = await res.json();
+      
+      // Защита: если пришёл не массив, а объект с ошибкой
+      if (!Array.isArray(data)) {
+        console.error('API вернул не массив:', data);
+        setRecipes([]);
+        if (showLoading) setLoading(false);
+        return;
+      }
+      
       const formatted = data.map(r => ({
         id: r.id,
         title: r.title,
@@ -36,7 +44,6 @@ function App() {
         image: r.image,
         ingredients: r.ingredients || [],
         steps: r.steps || [],
-        tags: r.tags || [],
       }));
       setRecipes(formatted);
     } catch (err) {
@@ -57,7 +64,6 @@ function App() {
           image: recipe.image,
           ingredients: recipe.ingredients,
           steps: recipe.steps,
-          tags: recipe.tags,
         }),
       });
       if (res.ok) {
@@ -88,8 +94,6 @@ function App() {
   };
 
   const filtered = recipes.filter(r => {
-    if (activeTag !== 'все' && !(r.tags || []).includes(activeTag)) return false;
-
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
@@ -122,18 +126,6 @@ function App() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-      </div>
-
-      <div className="tags-filter">
-        {['все', 'завтрак', 'обед', 'ужин', 'десерт', 'напиток'].map(tag => (
-          <button
-            key={tag}
-            className={`tag-filter-btn ${activeTag === tag ? 'active' : ''}`}
-            onClick={() => setActiveTag(tag)}
-          >
-            {tag}
-          </button>
-        ))}
       </div>
 
       {loading ? (

@@ -7,13 +7,6 @@ function RecipeCard({ recipe, onView, onDelete }) {
         </div>
       )}
       <div className="recipe-card-body">
-        {(recipe.tags || []).length > 0 && (
-          <div className="recipe-card-tags">
-            {recipe.tags.map(tag => (
-              <span key={tag} className="recipe-card-tag">{tag}</span>
-            ))}
-          </div>
-        )}
         <h3>{recipe.title}</h3>
         <div className="recipe-card-meta">
           {recipe.time && <span>⏱ {recipe.time} мин</span>}

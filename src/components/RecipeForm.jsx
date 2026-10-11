@@ -5,7 +5,6 @@ function RecipeForm({ onSave, onCancel }) {
   const [time, setTime] = useState('');
   const [servings, setServings] = useState('');
   const [image, setImage] = useState(null);
-  const [tags, setTags] = useState([]);
   const [ingredients, setIngredients] = useState([
     { name: '', amount: '', unit: 'г' }
   ]);
@@ -17,14 +16,6 @@ function RecipeForm({ onSave, onCancel }) {
     const reader = new FileReader();
     reader.onloadend = () => setImage(reader.result);
     reader.readAsDataURL(file);
-  };
-
-  const toggleTag = (tag) => {
-    setTags(prev =>
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
   };
 
   const addIngredient = () => {
@@ -61,7 +52,6 @@ function RecipeForm({ onSave, onCancel }) {
       image,
       ingredients: ingredients.filter(i => i.name.trim()),
       steps: steps.filter(s => s.trim()),
-      tags,
       createdAt: new Date().toISOString()
     };
 
@@ -111,22 +101,6 @@ function RecipeForm({ onSave, onCancel }) {
               onChange={(e) => setServings(e.target.value)}
               placeholder="2"
             />
-          </div>
-        </div>
-
-        <div className="form-section">
-          <label>Категории</label>
-          <div className="tags-selector">
-            {['завтрак', 'обед', 'ужин', 'десерт', 'напиток'].map(tag => (
-              <button
-                key={tag}
-                type="button"
-                className={`tag-btn ${tags.includes(tag) ? 'active' : ''}`}
-                onClick={() => toggleTag(tag)}
-              >
-                {tag}
-              </button>
-            ))}
           </div>
         </div>
 
