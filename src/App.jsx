@@ -3,7 +3,7 @@ import RecipeForm from './components/RecipeForm';
 import RecipeCard from './components/RecipeCard';
 import RecipeView from './components/RecipeView';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = 'https://recipes-ilakolincenko721-v1ce.onreza.app/api';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
