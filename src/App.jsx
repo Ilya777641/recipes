@@ -2,33 +2,73 @@ import { useState, useEffect } from 'react';
 import RecipeForm from './components/RecipeForm';
 import RecipeCard from './components/RecipeCard';
 import RecipeView from './components/RecipeView';
+import { supabase } from './supabaseClient';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
-  const [view, setView] = useState('list'); // 'list' | 'form' | 'recipe'
+  const [view, setView] = useState('list');
   const [currentRecipe, setCurrentRecipe] = useState(null);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  // Загрузка из localStorage
+  // Загрузка рецептов из Supabase
   useEffect(() => {
-    const saved = localStorage.getItem('recipes');
-    if (saved) {
-      try { setRecipes(JSON.parse(saved)); } catch (e) {}
-    }
+    fetchRecipes();
   }, []);
 
-  // Сохранение
-  useEffect(() => {
-    localStorage.setItem('recipes', JSON.stringify(recipes));
-  }, [recipes]);
+  const fetchRecipes = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  const handleSave = (recipe) => {
-    setRecipes([recipe, ...recipes]);
-    setView('list');
+    if (error) {
+      console.error('Ошибка загрузки:', error);
+    } else {
+      // Преобразуем данные из БД в наш формат
+      const formatted = data.map(r => ({
+        id: r.id,
+        title: r.title,
+        time: r.time,
+        servings: r.servings,
+        image: r.image,
+        ingredients: r.ingredients || [],
+        steps: r.steps || [],
+      }));
+      setRecipes(formatted);
+    }
+    setLoading(false);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Удалить рецепт?')) {
+  const handleSave = async (recipe) => {
+    // Отправляем в Supabase
+    const { error } = await supabase.from('recipes').insert({
+      title: recipe.title,
+      time: recipe.time,
+      servings: recipe.servings,
+      image: recipe.image,
+      ingredients: recipe.ingredients,
+      steps: recipe.steps,
+    });
+
+    if (error) {
+      console.error('Ошибка сохранения:', error);
+      alert('Ошибка сохранения. Попробуй ещё раз.');
+    } else {
+      await fetchRecipes(); // Обновляем список
+      setView('list');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Удалить рецепт?')) return;
+
+    const { error } = await supabase.from('recipes').delete().eq('id', id);
+
+    if (error) {
+      console.error('Ошибка удаления:', error);
+    } else {
       setRecipes(recipes.filter(r => r.id !== id));
     }
   };
@@ -75,7 +115,9 @@ function App() {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="empty-state">Загрузка...</div>
+      ) : filtered.length === 0 ? (
         <div className="empty-state">
           {recipes.length === 0
             ? 'Пока нет рецептов. Добавь первый!'
