@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import RecipeForm from './components/RecipeForm';
 import RecipeCard from './components/RecipeCard';
 import RecipeView from './components/RecipeView';
+import { getFavorites } from './utils/favorites';
 
 const API_URL = 'https://recipes-ilakolincenko721-v1ce.onreza.app/api';
 
@@ -11,6 +12,8 @@ function App() {
   const [currentRecipe, setCurrentRecipe] = useState(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favoritesVersion, setFavoritesVersion] = useState(0); // для перерисовки
 
   useEffect(() => {
     fetchRecipes(true);
@@ -22,20 +25,24 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Перечитать избранное при изменении
+  useEffect(() => {
+    setFavoritesVersion(v => v + 1);
+  }, [view]);
+
   const fetchRecipes = async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
       const res = await fetch(`${API_URL}/recipes`);
       const data = await res.json();
-      
-      // Защита: если пришёл не массив, а объект с ошибкой
+
       if (!Array.isArray(data)) {
         console.error('API вернул не массив:', data);
         setRecipes([]);
         if (showLoading) setLoading(false);
         return;
       }
-      
+
       const formatted = data.map(r => ({
         id: r.id,
         title: r.title,
@@ -93,7 +100,24 @@ function App() {
     setView('recipe');
   };
 
+  const handleFavoritesChange = () => {
+    setFavoritesVersion(v => v + 1);
+  };
+
+  // «Удиви меня» — случайный рецепт
+  const handleSurprise = () => {
+    if (recipes.length === 0) return;
+    const random = recipes[Math.floor(Math.random() * recipes.length)];
+    handleView(random);
+  };
+
+  // Фильтрация
+  const favorites = getFavorites();
   const filtered = recipes.filter(r => {
+    // Фильтр по избранному
+    if (showFavoritesOnly && !favorites.includes(r.id)) return false;
+
+    // Фильтр по поиску
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
@@ -107,16 +131,27 @@ function App() {
   }
 
   if (view === 'recipe' && currentRecipe) {
-    return <RecipeView recipe={currentRecipe} onBack={() => setView('list')} />;
+    return (
+      <RecipeView
+        recipe={currentRecipe}
+        onBack={() => setView('list')}
+        onFavoritesChange={handleFavoritesChange}
+      />
+    );
   }
 
   return (
     <div className="app">
       <header className="app-header">
         <h1>🍳 Мои рецепты</h1>
-        <button className="btn-add" onClick={() => setView('form')}>
-          + Добавить рецепт
-        </button>
+        <div className="header-actions">
+          <button className="btn-surprise" onClick={handleSurprise}>
+            🎲 Удиви меня
+          </button>
+          <button className="btn-add" onClick={() => setView('form')}>
+            + Добавить рецепт
+          </button>
+        </div>
       </header>
 
       <div className="search-bar">
@@ -128,11 +163,28 @@ function App() {
         />
       </div>
 
+      <div className="tabs">
+        <button
+          className={`tab-btn ${!showFavoritesOnly ? 'active' : ''}`}
+          onClick={() => setShowFavoritesOnly(false)}
+        >
+          Все рецепты ({recipes.length})
+        </button>
+        <button
+          className={`tab-btn ${showFavoritesOnly ? 'active' : ''}`}
+          onClick={() => setShowFavoritesOnly(true)}
+        >
+          ❤️ Избранное ({favorites.length})
+        </button>
+      </div>
+
       {loading ? (
         <div className="empty-state">Загрузка...</div>
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          {recipes.length === 0
+          {showFavoritesOnly
+            ? 'В избранном пока пусто. Нажми на ❤️ на карточке рецепта.'
+            : recipes.length === 0
             ? 'Пока нет рецептов. Добавь первый!'
             : 'Ничего не найдено'}
         </div>
@@ -144,6 +196,7 @@ function App() {
               recipe={recipe}
               onView={handleView}
               onDelete={handleDelete}
+              onFavoritesChange={handleFavoritesChange}
             />
           ))}
         </div>

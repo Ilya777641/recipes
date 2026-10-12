@@ -1,11 +1,36 @@
-function RecipeCard({ recipe, onView, onDelete }) {
+import { useState } from 'react';
+import { isFavorite, toggleFavorite } from '../utils/favorites';
+
+function RecipeCard({ recipe, onView, onDelete, onFavoritesChange }) {
+  const [fav, setFav] = useState(isFavorite(recipe.id));
+
+  const handleFavorite = (e) => {
+    e.stopPropagation();
+    const newState = toggleFavorite(recipe.id);
+    setFav(newState);
+    if (onFavoritesChange) onFavoritesChange();
+  };
+
   return (
     <div className="recipe-card">
-      {recipe.image && (
-        <div className="recipe-card-image">
-          <img src={recipe.image} alt={recipe.title} />
-        </div>
-      )}
+      <div className="recipe-card-image-wrapper">
+        {recipe.image ? (
+          <div className="recipe-card-image">
+            <img src={recipe.image} alt={recipe.title} />
+          </div>
+        ) : (
+          <div className="recipe-card-image recipe-card-placeholder">
+            <span>🍲</span>
+          </div>
+        )}
+        <button
+          className={`favorite-btn ${fav ? 'active' : ''}`}
+          onClick={handleFavorite}
+          title={fav ? 'Убрать из избранного' : 'В избранное'}
+        >
+          {fav ? '❤️' : '🤍'}
+        </button>
+      </div>
       <div className="recipe-card-body">
         <h3>{recipe.title}</h3>
         <div className="recipe-card-meta">
